@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
@@ -19,7 +18,6 @@ var (
 // 連線Mongodb
 func ConnectMongo() {
 	uri := viper.GetString("datasource.mongodb.uri")
-	fmt.Println(uri)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	logErr(err)
 
@@ -27,11 +25,10 @@ func ConnectMongo() {
 	mongoClient = client
 
 	db := uri[strings.LastIndex(uri, "/")+1:]
-	fmt.Println(db)
 	mongoConnection = client.Database(db)
 }
 
-func GtCollection(collection string) *mongo.Collection {
+func GetCollection(collection string) *mongo.Collection {
 	return mongoConnection.Collection(collection)
 }
 
