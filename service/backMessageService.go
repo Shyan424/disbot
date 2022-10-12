@@ -43,9 +43,13 @@ func (conn *BackMessageConnection) Insert(key string, value string) bool {
 }
 
 func (conn *BackMessageConnection) GetRandomValue(key string) string {
+	value := ""
 	bm := conn.repo.FindByKey(key)
-	values := bm.Value
-	value := values[random(len(values))]
+
+	if bm != nil {
+		values := bm.Value
+		value = values[random(len(values))]
+	}
 
 	return value
 }

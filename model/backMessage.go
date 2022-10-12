@@ -76,7 +76,7 @@ func (c *BackMessageConnection) FindByKey(key string) *BackMessage {
 	result := c.collection.FindOne(context.TODO(), filter)
 	err := result.Decode(&message)
 	if err != nil {
-		log.Println(err)
+		return nil
 	}
 
 	return &message
