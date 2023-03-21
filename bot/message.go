@@ -17,11 +17,11 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 
 	inputMessage := messageCreate.Content
 	var outputMessage string
-	if inputMessage[:1] != "!" {
-		outputMessage = backMessageService.GetRandomValue(inputMessage)
-	} else if strings.HasPrefix(inputMessage, "!set") {
+	if strings.HasPrefix(inputMessage, "!set") {
 		message := toBackMessage(inputMessage)
 		outputMessage = setBackMessage(message)
+	} else {
+		outputMessage = backMessageService.GetRandomValue(inputMessage)
 	}
 
 	session.ChannelMessageSend(messageCreate.ChannelID, outputMessage)

@@ -30,7 +30,6 @@ type BackMessageRepository interface {
 
 func GetBackMessageRepository() BackMessageRepository {
 	backMessage := datasource.GetCollection("backmessage")
-
 	return &BackMessageConnection{backMessage}
 }
 

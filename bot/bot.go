@@ -3,35 +3,42 @@ package bot
 import (
 	"discordbot/service"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/spf13/viper"
 )
 
-var session *discordgo.Session
+type Discordbot struct {
+	session *discordgo.Session
+}
 
-func ConnectDiscord() {
-	// Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + viper.GetString("discordbot.token"))
+func New(token string) *Discordbot {
+	bot := &Discordbot{}
+	dg, err := discordgo.New(token)
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
+		log.Fatal("error creating Discord session,", err)
 	}
 
-	session = dg
+	bot.session = dg
+
+	return bot
+}
+
+func (d *Discordbot) ConnectDiscord() {
+	// Create a new Discord session using the provided bot token.
 	backMessageService = service.GetBackMessageService()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(messageCreate)
+	d.session.AddHandler(messageCreate)
 
 	// In this example, we only care about receiving message events.
-	dg.Identify.Intents = discordgo.IntentsGuildMessages
+	d.session.Identify.Intents = discordgo.IntentsGuildMessages
 
 	// Open a websocket connection to Discord and begin listening.
-	err = dg.Open()
+	err := d.session.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
@@ -42,11 +49,11 @@ func ConnectDiscord() {
 
 }
 
-func CloseDiscord() {
+func (d *Discordbot) CloseDiscord() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
 	// Cleanly close down the Discord session.
-	session.Close()
+	d.session.Close()
 }

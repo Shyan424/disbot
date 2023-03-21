@@ -8,7 +8,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-func init() {
+func Run() {
+	loadConfig()
+	mongo := getMongo()
+	bot := getBot()
+
+	mongo.ConnectMongo()
+	// test()
+	defer mongo.CloseMongo()
+	bot.ConnectDiscord()
+	defer bot.CloseDiscord()
+}
+
+func loadConfig() {
 	log.SetFlags(log.Lshortfile)
 	viper.SetConfigFile("./config.yaml")
 	err := viper.ReadInConfig()
@@ -17,12 +29,15 @@ func init() {
 	}
 }
 
-func Run() {
-	datasource.ConnectMongo()
-	// test()
-	defer datasource.CloseMongo()
-	bot.ConnectDiscord()
-	defer bot.CloseDiscord()
+func getMongo() *datasource.MongoDatasource {
+	mongo := datasource.GetDatasource()
+	mongo.Uri = viper.GetString("datasource.mongodb.uri")
+
+	return mongo
+}
+
+func getBot() *bot.Discordbot {
+	return bot.New("Bot " + viper.GetString("discordbot.token"))
 }
 
 // func test() {
