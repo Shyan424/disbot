@@ -4,9 +4,6 @@ import (
 	"discordbot/model"
 	"math/rand"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type BackMessageService interface {
@@ -29,16 +26,13 @@ func GetBackMessageService() BackMessageService {
 // 沒key就insert新的
 func (conn *BackMessageConnection) AddValue(key string, value string) bool {
 	_, err := conn.repo.FindByKeyAndUpdate(key, value)
-	if err != nil && err != mongo.ErrNoDocuments {
-		return false
-	}
 
-	return true
+	return err == nil
 }
 
 func (conn *BackMessageConnection) Insert(key string, value string) bool {
 	values := []string{value}
-	bm := model.BackMessage{Id: primitive.NewObjectID(), Key: key, Value: values}
+	bm := model.BackMessage{Key: key, Value: values}
 	return conn.repo.Insert([]model.BackMessage{bm})
 }
 
@@ -55,6 +49,6 @@ func (conn *BackMessageConnection) GetRandomValue(key string) string {
 }
 
 func random(maxIndex int) int {
-	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(maxIndex)
+	r := rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
+	return r.Intn(maxIndex)
 }

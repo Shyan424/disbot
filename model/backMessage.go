@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"discordbot/datasource"
+	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -95,6 +96,9 @@ func (c *BackMessageConnection) FindByKeyAndUpdate(key string, values ...string)
 	var backMessage BackMessage
 	// 有會直接update沒有會直接insert 回傳的result是還沒update前的
 	err := c.collection.FindOneAndUpdate(context.TODO(), filter, update, option).Decode(&backMessage)
+	if err == mongo.ErrNoDocuments {
+		err = fmt.Errorf("mongo: no documents in result")
+	}
 
 	return &backMessage, err
 }
