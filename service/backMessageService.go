@@ -1,7 +1,8 @@
 package service
 
 import (
-	"discordbot/model"
+	"discordbot/model/vo"
+	"discordbot/repository"
 	"math/rand"
 	"time"
 )
@@ -13,11 +14,11 @@ type BackMessageService interface {
 }
 
 type BackMessageConnection struct {
-	repo model.BackMessageRepository
+	repo repository.BackMessageRepository
 }
 
 func GetBackMessageService() BackMessageService {
-	modelConn := model.GetBackMessageRepository()
+	modelConn := repository.GetBackMessageRepository()
 	return &BackMessageConnection{modelConn}
 }
 
@@ -32,8 +33,8 @@ func (conn *BackMessageConnection) AddValue(key string, value string) bool {
 
 func (conn *BackMessageConnection) Insert(key string, value string) bool {
 	values := []string{value}
-	bm := model.BackMessage{Key: key, Value: values}
-	return conn.repo.Insert([]model.BackMessage{bm})
+	bm := vo.BackMessageVo{Key: key, Value: values}
+	return conn.repo.Insert([]vo.BackMessageVo{bm})
 }
 
 func (conn *BackMessageConnection) GetRandomValue(key string) string {

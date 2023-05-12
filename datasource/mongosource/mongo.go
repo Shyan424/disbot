@@ -1,4 +1,4 @@
-package datasource
+package mongosource
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,7 +20,23 @@ type MongoDatasource struct {
 	mongoClient     *mongo.Client
 }
 
-func GetDatasource() *MongoDatasource {
+func RunWithMongo(ctx context.Context, wait *sync.WaitGroup) {
+	mongo := getMongo()
+	mongo.ConnectMongo()
+
+	<-ctx.Done()
+	mongo.CloseMongo()
+	wait.Done()
+}
+
+func getMongo() *MongoDatasource {
+	mongo := GetMongoDatasource()
+	mongo.Uri = viper.GetString("datasource.mongodb.uri")
+
+	return mongo
+}
+
+func GetMongoDatasource() *MongoDatasource {
 
 	if self == nil {
 		lock.Lock()

@@ -1,23 +1,30 @@
 package app
 
 import (
+	"context"
 	"discordbot/bot"
-	"discordbot/datasource"
+	"discordbot/datasource/mongosource"
 	"log"
+	"sync"
 
 	"github.com/spf13/viper"
 )
 
 func Run() {
 	loadConfig()
-	mongo := getMongo()
 	bot := getBot()
+	ctx, cancel := context.WithCancel(context.Background())
+	wait := sync.WaitGroup{}
 
-	mongo.ConnectMongo()
-	// test()
-	defer mongo.CloseMongo()
 	bot.ConnectDiscord()
-	defer bot.CloseDiscord()
+	if viper.GetString("datasource.mongodb.uri") != "" {
+		wait.Add(1)
+		go mongosource.RunWithMongo(ctx, &wait)
+	}
+
+	bot.WaitForClose()
+	cancel()
+	wait.Wait()
 }
 
 func loadConfig() {
@@ -29,36 +36,6 @@ func loadConfig() {
 	}
 }
 
-func getMongo() *datasource.MongoDatasource {
-	mongo := datasource.GetDatasource()
-	mongo.Uri = viper.GetString("datasource.mongodb.uri")
-
-	return mongo
-}
-
 func getBot() *bot.Discordbot {
 	return bot.New("Bot " + viper.GetString("discordbot.token"))
 }
-
-// func test() {
-// 	s := service.GetBackMessageService()
-// 	// testTimes := 1
-// 	// g := sync.WaitGroup{}
-// 	// g.Add(testTimes)
-
-// 	// for i := 0; i < testTimes; i++ {
-// 	// 	go func(i int) {
-// 	// 		k := i
-// 	// 		for j := 0; j < 1000; j++ {
-// 	// 			key := "key8" + strconv.Itoa(k)
-// 	// 			value := "value" + strconv.Itoa(j)
-
-// 	// 			s.AddValue(key, value)
-// 	// 		}
-// 	// 		g.Done()
-// 	// 	}(i)
-// 	// }
-// 	// g.Wait()
-// 	back := s.AddValue("insert1", "value3")
-// 	fmt.Println(back)
-// }
