@@ -1,18 +1,23 @@
 package repository
 
 import (
-	"discordbot/datasource/mongosource"
+	"discordbot/datasource/sqlsource"
 	"discordbot/model/vo"
 )
 
 type BackMessageRepository interface {
 	Insert(backMessages []vo.BackMessageVo) bool
-	UpdateByKey(key string, values ...string) bool
-	FindByKey(key string) *vo.BackMessageVo
-	FindByKeyAndUpdate(key string, values ...string) (*vo.BackMessageVo, error)
+	FindByKeyAndGuildId(key string, guildId string) []vo.BackMessageVo
+	FindAll() []vo.BackMessageVo
+	FindByGuildId(guildId string) []vo.BackMessageVo
+	DeleteById(id string) bool
+	DeleteByIdAndKeyAndGuildId(id string, key string, guildId string) bool
+	DeleteByKeyAndValue(key string, value string) bool
 }
 
 func GetBackMessageRepository() BackMessageRepository {
-	backMessage := mongosource.GetCollection("backmessage")
-	return &BackMessageMongoConnection{backMessage}
+	var connection BackMessageSqlConnection
+	connection.Connection = sqlsource.GetDatasource()
+
+	return &connection
 }

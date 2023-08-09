@@ -3,39 +3,42 @@ package app
 import (
 	"context"
 	"discordbot/bot"
-	"discordbot/datasource/mongosource"
-	"log"
+	"discordbot/datasource/sqlsource"
 	"sync"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 func Run() {
-	loadConfig()
-	bot := getBot()
+	defaultConfig()
+	loadConfigFile()
+	bot := bot.New("Bot " + viper.GetString("discordbot.token"))
 	ctx, cancel := context.WithCancel(context.Background())
 	wait := sync.WaitGroup{}
 
-	bot.ConnectDiscord()
-	if viper.GetString("datasource.mongodb.uri") != "" {
+	if viper.GetString("datasource.postgres.uri") != "" {
 		wait.Add(1)
-		go mongosource.RunWithMongo(ctx, &wait)
+		go sqlsource.ConnectPostSql(ctx, &wait)
 	}
 
-	bot.WaitForClose()
+	bot.ConnectDiscord()
 	cancel()
 	wait.Wait()
 }
 
-func loadConfig() {
-	log.SetFlags(log.Lshortfile)
+func loadConfigFile() {
+	// logrus.SetReportCaller(true)
+	// log.SetFlags(log.Lshortfile)
 	viper.SetConfigFile("./config.yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("Read config error")
 	}
 }
 
-func getBot() *bot.Discordbot {
-	return bot.New("Bot " + viper.GetString("discordbot.token"))
+func defaultConfig() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.With().Caller().Logger()
 }

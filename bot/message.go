@@ -1,13 +1,10 @@
 package bot
 
 import (
-	"discordbot/service"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
-
-var backMessageService service.BackMessageService
 
 func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
 	// 該訊息是bot發送的就往下執行
@@ -17,14 +14,28 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 
 	inputMessage := messageCreate.Content
 	var outputMessage string
-	if strings.HasPrefix(inputMessage, "!set") {
-		message := toBackMessage(inputMessage)
-		outputMessage = setBackMessage(message)
+	if strings.HasPrefix(inputMessage, "!") {
+		messages := strings.Split(inputMessage, " ")
+
+		if len(messages) < 3 {
+			session.ChannelMessageSend(messageCreate.ChannelID, "????")
+		}
+
+		act := messages[0][1:]
+
+		switch act {
+		case "set":
+			message := toBackMessage(inputMessage)
+			outputMessage = setBackMessage(message, messageCreate.GuildID)
+		}
+
 	} else {
-		outputMessage = backMessageService.GetRandomValue(inputMessage)
+		outputMessage = backMessageService.GetRandomValue(inputMessage, messageCreate.GuildID)
 	}
 
-	session.ChannelMessageSend(messageCreate.ChannelID, outputMessage)
+	if outputMessage != "" {
+		session.ChannelMessageSend(messageCreate.ChannelID, outputMessage)
+	}
 }
 
 type backMessage struct {
@@ -40,9 +51,9 @@ func toBackMessage(inputMessage string) *backMessage {
 	return &backMessage{key: key, value: value}
 }
 
-func setBackMessage(message *backMessage) string {
+func setBackMessage(message *backMessage, guildId string) string {
 	var outputMessage string
-	ok := backMessageService.AddValue(message.key, message.value)
+	ok := backMessageService.InsertMessage(message.key, message.value, guildId)
 	if ok {
 		outputMessage = "OK啦"
 	} else {

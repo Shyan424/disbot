@@ -8,13 +8,19 @@ import (
 )
 
 type BackMessageService interface {
-	AddValue(string, string) bool
-	Insert(key string, value string) bool
-	GetRandomValue(key string) string
+	InsertMessage(key string, value string, guildId string) bool
+	GetAllValue() []vo.BackMessageVo
+	GetAllValueByKeyAndGuild(key string, guildId string) []vo.BackMessageVo
+	GetAllKey() map[string][]string
+	GetAllKeyByGuildId(guildId string) []string
+	GetRandomValue(key string, guildId string) string
+	DeleteMessageById(id string) bool
+	DeleteMessageByIdAndKeyAndGuildId(id string, key string, guildId string) bool
+	DeleteMessage(key string, value string) bool
 }
 
 type BackMessageConnection struct {
-	repo repository.BackMessageRepository
+	repository.BackMessageRepository
 }
 
 func GetBackMessageService() BackMessageService {
@@ -22,28 +28,47 @@ func GetBackMessageService() BackMessageService {
 	return &BackMessageConnection{modelConn}
 }
 
-// 用key新增value
-// 有key將value新增到value feild
-// 沒key就insert新的
-func (conn *BackMessageConnection) AddValue(key string, value string) bool {
-	_, err := conn.repo.FindByKeyAndUpdate(key, value)
-
-	return err == nil
+func (conn *BackMessageConnection) InsertMessage(key string, value string, guildId string) bool {
+	return conn.Insert([]vo.BackMessageVo{{Key: key, Value: value, GuildId: guildId}})
 }
 
-func (conn *BackMessageConnection) Insert(key string, value string) bool {
-	values := []string{value}
-	bm := vo.BackMessageVo{Key: key, Value: values}
-	return conn.repo.Insert([]vo.BackMessageVo{bm})
+func (conn *BackMessageConnection) GetAllValue() []vo.BackMessageVo {
+	return conn.FindAll()
 }
 
-func (conn *BackMessageConnection) GetRandomValue(key string) string {
+func (conn *BackMessageConnection) GetAllValueByKeyAndGuild(key string, guildId string) []vo.BackMessageVo {
+	return conn.FindByKeyAndGuildId(key, guildId)
+}
+
+func (conn *BackMessageConnection) GetAllKey() map[string][]string {
+	allBackMessageKey := map[string][]string{}
+	allKey := conn.FindAll()
+
+	for _, v := range allKey {
+		allBackMessageKey[v.GuildId] = append(allBackMessageKey[v.GuildId], v.Key)
+	}
+
+	return allBackMessageKey
+}
+
+func (conn *BackMessageConnection) GetAllKeyByGuildId(guildId string) []string {
+	backMessages := conn.FindByGuildId(guildId)
+	keys := make([]string, len(backMessages))
+
+	for i, v := range backMessages {
+		keys[i] = v.Key
+	}
+
+	return keys
+}
+
+func (conn *BackMessageConnection) GetRandomValue(key string, guildId string) string {
 	value := ""
-	bm := conn.repo.FindByKey(key)
+	bm := conn.FindByKeyAndGuildId(key, guildId)
+	bmLen := len(bm)
 
-	if bm != nil {
-		values := bm.Value
-		value = values[random(len(values))]
+	if bmLen != 0 {
+		value = bm[random(bmLen)].Value
 	}
 
 	return value
@@ -52,4 +77,16 @@ func (conn *BackMessageConnection) GetRandomValue(key string) string {
 func random(maxIndex int) int {
 	r := rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
 	return r.Intn(maxIndex)
+}
+
+func (conn *BackMessageConnection) DeleteMessageById(id string) bool {
+	return conn.DeleteById(id)
+}
+
+func (conn *BackMessageConnection) DeleteMessageByIdAndKeyAndGuildId(id string, key string, guildId string) bool {
+	return conn.DeleteByIdAndKeyAndGuildId(id, key, guildId)
+}
+
+func (conn *BackMessageConnection) DeleteMessage(key string, value string) bool {
+	return conn.DeleteByKeyAndValue(key, value)
 }
