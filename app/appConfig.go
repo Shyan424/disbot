@@ -1,64 +1,44 @@
 package app
 
 import (
+	"context"
 	"discordbot/bot"
-	"discordbot/datasource"
-	"log"
+	"discordbot/datasource/sqlsource"
+	"sync"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 func Run() {
-	loadConfig()
-	mongo := getMongo()
-	bot := getBot()
+	defaultConfig()
+	loadConfigFile()
+	bot := bot.New("Bot " + viper.GetString("discordbot.token"))
+	ctx, cancel := context.WithCancel(context.Background())
+	wait := sync.WaitGroup{}
 
-	mongo.ConnectMongo()
-	// test()
-	defer mongo.CloseMongo()
+	if viper.GetString("datasource.postgres.uri") != "" {
+		wait.Add(1)
+		go sqlsource.ConnectPostSql(ctx, &wait)
+	}
+
 	bot.ConnectDiscord()
-	defer bot.CloseDiscord()
+	cancel()
+	wait.Wait()
 }
 
-func loadConfig() {
-	log.SetFlags(log.Lshortfile)
+func loadConfigFile() {
+	// logrus.SetReportCaller(true)
+	// log.SetFlags(log.Lshortfile)
 	viper.SetConfigFile("./config.yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("Read config error")
 	}
 }
 
-func getMongo() *datasource.MongoDatasource {
-	mongo := datasource.GetDatasource()
-	mongo.Uri = viper.GetString("datasource.mongodb.uri")
-
-	return mongo
+func defaultConfig() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.With().Caller().Logger()
 }
-
-func getBot() *bot.Discordbot {
-	return bot.New("Bot " + viper.GetString("discordbot.token"))
-}
-
-// func test() {
-// 	s := service.GetBackMessageService()
-// 	// testTimes := 1
-// 	// g := sync.WaitGroup{}
-// 	// g.Add(testTimes)
-
-// 	// for i := 0; i < testTimes; i++ {
-// 	// 	go func(i int) {
-// 	// 		k := i
-// 	// 		for j := 0; j < 1000; j++ {
-// 	// 			key := "key8" + strconv.Itoa(k)
-// 	// 			value := "value" + strconv.Itoa(j)
-
-// 	// 			s.AddValue(key, value)
-// 	// 		}
-// 	// 		g.Done()
-// 	// 	}(i)
-// 	// }
-// 	// g.Wait()
-// 	back := s.AddValue("insert1", "value3")
-// 	fmt.Println(back)
-// }
