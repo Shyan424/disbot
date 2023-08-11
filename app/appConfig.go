@@ -6,7 +6,6 @@ import (
 	"discordbot/datasource/sqlsource"
 	"sync"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -18,10 +17,12 @@ func Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	wait := sync.WaitGroup{}
 
-	if viper.GetString("datasource.postgres.uri") != "" {
-		wait.Add(1)
-		go sqlsource.ConnectPostSql(ctx, &wait)
+	if viper.GetString("datasource.postgres.uri") == "" {
+		log.Fatal().Msg("No DB uri???")
 	}
+
+	wait.Add(1)
+	go sqlsource.ConnectPostSql(ctx, &wait)
 
 	bot.ConnectDiscord()
 	cancel()
@@ -39,6 +40,6 @@ func loadConfigFile() {
 }
 
 func defaultConfig() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.With().Caller().Logger()
 }

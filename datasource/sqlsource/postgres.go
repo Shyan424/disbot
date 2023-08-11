@@ -11,6 +11,7 @@ import (
 )
 
 var connection = new(Connection)
+var connectionOnce sync.Once
 
 func ConnectPostSql(context context.Context, wait *sync.WaitGroup) {
 	initDb()
@@ -26,8 +27,7 @@ func GetDatasource() *Connection {
 }
 
 func initDb() {
-	var once sync.Once
-	once.Do(func() {
+	connectionOnce.Do(func() {
 		dbx, err := sqlx.Open("pgx", viper.GetString("datasource.postgres.uri"))
 
 		// dbx.SetMaxOpenConns(2)
