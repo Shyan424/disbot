@@ -1,0 +1,5 @@
+datasource:
+  postgres:
+    uri: postgres://username:password@localhost:5432/database_name
+discordbot:
+  token: 
