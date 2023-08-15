@@ -1,19 +1,21 @@
 package res
 
+type Res int
+
 const (
-	OK = iota
+	OK Res = iota
 	FAIL
 	WHAT
 	EXPIRED
 )
 
-var res = map[int]string{
+var mapToString = map[Res]string{
 	OK:      "OK 啦",
 	FAIL:    "????",
 	WHAT:    "沒有這種東西",
 	EXPIRED: "已過期",
 }
 
-func GetMsg(e int) string {
-	return res[e]
+func (r Res) GetMsg() string {
+	return mapToString[r]
 }

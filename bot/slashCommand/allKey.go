@@ -27,7 +27,7 @@ func allMessageFunc(c context) {
 	if len(keySlice) > 0 {
 		content = strings.Join(keySlice, ", ")
 	} else {
-		content = res.GetMsg(res.WHAT)
+		content = res.WHAT.GetMsg()
 	}
 
 	err := c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{

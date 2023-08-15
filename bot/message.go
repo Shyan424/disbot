@@ -19,7 +19,7 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 		messages := strings.Split(inputMessage, " ")
 
 		if len(messages) < 3 {
-			session.ChannelMessageSend(messageCreate.ChannelID, res.GetMsg(res.FAIL))
+			session.ChannelMessageSend(messageCreate.ChannelID, res.FAIL.GetMsg())
 		}
 
 		act := messages[0][1:]
@@ -53,7 +53,7 @@ func toBackMessage(inputMessage string) *backMessage {
 }
 
 func setBackMessage(message *backMessage, guildId string) string {
-	var outputMessage int
+	var outputMessage res.Res
 	ok := backMessageService.InsertMessage(message.key, message.value, guildId)
 	if ok {
 		outputMessage = res.OK
@@ -61,5 +61,5 @@ func setBackMessage(message *backMessage, guildId string) string {
 		outputMessage = res.FAIL
 	}
 
-	return res.GetMsg(outputMessage)
+	return outputMessage.GetMsg()
 }

@@ -36,7 +36,7 @@ func setMessageCommandFunc(c context) {
 		c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: res.GetMsg(res.OK),
+				Content: res.OK.GetMsg(),
 			},
 		})
 	}
@@ -44,7 +44,7 @@ func setMessageCommandFunc(c context) {
 	c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: res.GetMsg(res.FAIL),
+			Content: res.FAIL.GetMsg(),
 		},
 	})
 }

@@ -48,7 +48,7 @@ func deleteMessageCommandFunc(c context) {
 		c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: res.GetMsg(res.FAIL),
+				Content: res.FAIL.GetMsg(),
 			},
 		})
 
@@ -97,12 +97,12 @@ func deleteMessageComponentFunc(c context) {
 	info := getDeleteInteractionMessage(values[0])
 
 	if info.message == nil {
-		c.session.ChannelMessageSend(c.interactionCreate.ChannelID, res.GetMsg(res.FAIL))
+		c.session.ChannelMessageSend(c.interactionCreate.ChannelID, res.FAIL.GetMsg())
 		return
 	}
 
 	if isDeleteInfoExprie(info) {
-		content := res.GetMsg(res.EXPIRED)
+		content := res.EXPIRED.GetMsg()
 		c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{
 			Components: &[]discordgo.MessageComponent{},
 			Content:    &content,
@@ -112,7 +112,7 @@ func deleteMessageComponentFunc(c context) {
 	}
 
 	if slashCommand.messageService.DeleteMessageByIdAndKeyAndGuildId(values[1], values[0], c.interactionCreate.GuildID) {
-		deOk := res.GetMsg(res.OK)
+		deOk := res.OK.GetMsg()
 
 		c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{
 			Components: &[]discordgo.MessageComponent{},
@@ -122,7 +122,7 @@ func deleteMessageComponentFunc(c context) {
 		return
 	}
 
-	content := res.GetMsg(res.FAIL)
+	content := res.FAIL.GetMsg()
 	c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{
 		Components: &[]discordgo.MessageComponent{},
 		Content:    &content,
