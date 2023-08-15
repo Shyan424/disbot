@@ -1,6 +1,10 @@
 package slashcommand
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"discordbot/enum/res"
+
+	"github.com/bwmarrin/discordgo"
+)
 
 func setMessageCommand() {
 	command := discordgo.ApplicationCommand{
@@ -32,7 +36,7 @@ func setMessageCommandFunc(c context) {
 		c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "OK 啦",
+				Content: res.GetMsg(res.OK),
 			},
 		})
 	}
@@ -40,7 +44,7 @@ func setMessageCommandFunc(c context) {
 	c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "????",
+			Content: res.GetMsg(res.FAIL),
 		},
 	})
 }

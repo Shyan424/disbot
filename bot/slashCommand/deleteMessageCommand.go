@@ -1,6 +1,7 @@
 package slashcommand
 
 import (
+	"discordbot/enum/res"
 	"strconv"
 	"strings"
 	"time"
@@ -47,7 +48,7 @@ func deleteMessageCommandFunc(c context) {
 		c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "沒有這種東西",
+				Content: res.GetMsg(res.FAIL),
 			},
 		})
 
@@ -96,12 +97,12 @@ func deleteMessageComponentFunc(c context) {
 	info := getDeleteInteractionMessage(values[0])
 
 	if info.message == nil {
-		c.session.ChannelMessageSend(c.interactionCreate.ChannelID, "????")
+		c.session.ChannelMessageSend(c.interactionCreate.ChannelID, res.GetMsg(res.FAIL))
 		return
 	}
 
 	if isDeleteInfoExprie(info) {
-		content := "已到期"
+		content := res.GetMsg(res.EXPIRED)
 		c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{
 			Components: &[]discordgo.MessageComponent{},
 			Content:    &content,
@@ -111,7 +112,7 @@ func deleteMessageComponentFunc(c context) {
 	}
 
 	if slashCommand.messageService.DeleteMessageByIdAndKeyAndGuildId(values[1], values[0], c.interactionCreate.GuildID) {
-		deOk := "OK 啦"
+		deOk := res.GetMsg(res.OK)
 
 		c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{
 			Components: &[]discordgo.MessageComponent{},
@@ -121,7 +122,7 @@ func deleteMessageComponentFunc(c context) {
 		return
 	}
 
-	content := "????"
+	content := res.GetMsg(res.FAIL)
 	c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{
 		Components: &[]discordgo.MessageComponent{},
 		Content:    &content,

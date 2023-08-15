@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"discordbot/enum/res"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -18,7 +19,7 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 		messages := strings.Split(inputMessage, " ")
 
 		if len(messages) < 3 {
-			session.ChannelMessageSend(messageCreate.ChannelID, "????")
+			session.ChannelMessageSend(messageCreate.ChannelID, res.GetMsg(res.FAIL))
 		}
 
 		act := messages[0][1:]
@@ -52,13 +53,13 @@ func toBackMessage(inputMessage string) *backMessage {
 }
 
 func setBackMessage(message *backMessage, guildId string) string {
-	var outputMessage string
+	var outputMessage int
 	ok := backMessageService.InsertMessage(message.key, message.value, guildId)
 	if ok {
-		outputMessage = "OK啦"
+		outputMessage = res.OK
 	} else {
-		outputMessage = "???"
+		outputMessage = res.FAIL
 	}
 
-	return outputMessage
+	return res.GetMsg(outputMessage)
 }

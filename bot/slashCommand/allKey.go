@@ -1,6 +1,7 @@
 package slashcommand
 
 import (
+	"discordbot/enum/res"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -26,7 +27,7 @@ func allMessageFunc(c context) {
 	if len(keySlice) > 0 {
 		content = strings.Join(keySlice, ", ")
 	} else {
-		content = "沒有這種東西"
+		content = res.GetMsg(res.WHAT)
 	}
 
 	err := c.session.InteractionRespond(c.interactionCreate.Interaction, &discordgo.InteractionResponse{
