@@ -5,6 +5,8 @@ import (
 	"discordbot/repository"
 	"math/rand"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type BackMessageService interface {
@@ -29,7 +31,7 @@ func GetBackMessageService() BackMessageService {
 }
 
 func (conn *BackMessageConnection) InsertMessage(key string, value string, guildId string) bool {
-	return conn.Insert([]vo.BackMessageVo{{Key: key, Value: value, GuildId: guildId}})
+	return conn.Insert([]vo.BackMessageVo{{Key: key, Value: value, GuildId: guildId}}) == nil
 }
 
 func (conn *BackMessageConnection) GetAllValue() []vo.BackMessageVo {
@@ -37,7 +39,13 @@ func (conn *BackMessageConnection) GetAllValue() []vo.BackMessageVo {
 }
 
 func (conn *BackMessageConnection) GetAllValueByKeyAndGuild(key string, guildId string) []vo.BackMessageVo {
-	return conn.FindByKeyAndGuildId(key, guildId)
+	backMessages, err := conn.FindByKeyAndGuildId(key, guildId)
+
+	if err != nil {
+		log.Err(err).Msgf("FindByKeyAndGuildId %s Error", key)
+	}
+
+	return backMessages
 }
 
 func (conn *BackMessageConnection) GetAllKey() map[string][]string {
@@ -52,8 +60,12 @@ func (conn *BackMessageConnection) GetAllKey() map[string][]string {
 }
 
 func (conn *BackMessageConnection) GetAllKeyByGuildId(guildId string) []string {
-	backMessages := conn.FindByGuildId(guildId)
+	backMessages, err := conn.FindByGuildId(guildId)
 	keys := make([]string, len(backMessages))
+
+	if err != nil {
+		return keys
+	}
 
 	for i, v := range backMessages {
 		keys[i] = v.Key
@@ -64,7 +76,7 @@ func (conn *BackMessageConnection) GetAllKeyByGuildId(guildId string) []string {
 
 func (conn *BackMessageConnection) GetRandomValue(key string, guildId string) string {
 	value := ""
-	bm := conn.FindByKeyAndGuildId(key, guildId)
+	bm, _ := conn.FindByKeyAndGuildId(key, guildId)
 	bmLen := len(bm)
 
 	if bmLen != 0 {
@@ -80,13 +92,30 @@ func random(maxIndex int) int {
 }
 
 func (conn *BackMessageConnection) DeleteMessageById(id string) bool {
-	return conn.DeleteById(id)
+	err := conn.DeleteById(id)
+	if err != nil {
+		log.Err(err).Msgf("DeleteById(%s) Error", id)
+		return false
+	}
+
+	return err == nil
 }
 
 func (conn *BackMessageConnection) DeleteMessageByIdAndKeyAndGuildId(id string, key string, guildId string) bool {
-	return conn.DeleteByIdAndKeyAndGuildId(id, key, guildId)
+	err := conn.DeleteByIdAndKeyAndGuildId(id, key, guildId)
+	if err != nil {
+		log.Err(err).Msgf("DeleteByIdAndKeyAndGuildId(%s, %s, %s) Error", id, key, guildId)
+		return false
+	}
+
+	return err == nil
 }
 
 func (conn *BackMessageConnection) DeleteMessage(key string, value string) bool {
-	return conn.DeleteByKeyAndValue(key, value)
+	err := conn.DeleteByKeyAndValue(key, value)
+	if err != nil {
+		log.Err(err).Msgf("DeleteByKeyAndValue(%s, %s) Error", key, value)
+	}
+
+	return err == nil
 }

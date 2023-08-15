@@ -6,13 +6,13 @@ import (
 )
 
 type BackMessageRepository interface {
-	Insert(backMessages []vo.BackMessageVo) bool
-	FindByKeyAndGuildId(key string, guildId string) []vo.BackMessageVo
+	Insert(backMessages []vo.BackMessageVo) error
+	FindByKeyAndGuildId(key string, guildId string) ([]vo.BackMessageVo, error)
 	FindAll() []vo.BackMessageVo
-	FindByGuildId(guildId string) []vo.BackMessageVo
-	DeleteById(id string) bool
-	DeleteByIdAndKeyAndGuildId(id string, key string, guildId string) bool
-	DeleteByKeyAndValue(key string, value string) bool
+	FindByGuildId(guildId string) ([]vo.BackMessageVo, error)
+	DeleteById(id string) error
+	DeleteByIdAndKeyAndGuildId(id string, key string, guildId string) error
+	DeleteByKeyAndValue(key string, value string) error
 }
 
 func GetBackMessageRepository() BackMessageRepository {

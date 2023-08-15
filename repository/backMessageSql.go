@@ -11,37 +11,32 @@ type BackMessageSqlConnection struct {
 	*sqlsource.Connection
 }
 
-func (db *BackMessageSqlConnection) Insert(backMessages []vo.BackMessageVo) bool {
-	insertSql := `INSERT INTO backmessage(key, value, guildid) VALUES($1, $2, $3)`
+func (db *BackMessageSqlConnection) Insert(backMessages []vo.BackMessageVo) error {
+	insertSql := `INSERT INTO backmessage(key, value, guildid) VALUES(:key, :value, :guildid)`
 
-	tx, _ := db.Begin()
-	for _, v := range backMessages {
-		_, err := tx.Exec(insertSql, v.Key, v.Value, v.GuildId)
+	tx, _ := db.Beginx()
+	_, err := tx.NamedExec(insertSql, backMessages)
 
-		if err != nil {
-			tx.Rollback()
-			log.Err(err).Msg(`BackMessage Insert ERROR`)
-			return false
-		}
+	if err != nil {
+		tx.Rollback()
+		log.Err(err).Msg(`BackMessage Insert ERROR`)
+		return err
 	}
-	tx.Commit()
 
-	return true
+	return tx.Commit()
 }
 
-func (db *BackMessageSqlConnection) FindByKeyAndGuildId(key string, guildId string) []vo.BackMessageVo {
+func (db *BackMessageSqlConnection) FindByKeyAndGuildId(key string, guildId string) ([]vo.BackMessageVo, error) {
 	selectSql := `SELECT * FROM backmessage WHERE key=:key AND GUILDID=:guildid`
 	backMessage := vo.BackMessageVo{Key: key, GuildId: guildId}
 	backMessageVoSlice := []vo.BackMessageVo{}
-
-	nstmt, _ := db.PrepareNamed(selectSql)
-	err := nstmt.Select(&backMessageVoSlice, backMessage)
+	err := db.Select(&backMessageVoSlice, selectSql, backMessage)
 
 	if err != nil {
 		log.Err(err).Msg(`BackMessage FindByKey ERROR`)
 	}
 
-	return backMessageVoSlice
+	return backMessageVoSlice, err
 }
 
 func (db *BackMessageSqlConnection) FindAll() []vo.BackMessageVo {
@@ -53,48 +48,51 @@ func (db *BackMessageSqlConnection) FindAll() []vo.BackMessageVo {
 	return allValue
 }
 
-func (db *BackMessageSqlConnection) FindByGuildId(guildId string) []vo.BackMessageVo {
+func (db *BackMessageSqlConnection) FindByGuildId(guildId string) ([]vo.BackMessageVo, error) {
 	selectSql := `SELECT DISTINCT KEY FROM backmessage WHERE GUILDID=:guildid`
 	arg := vo.BackMessageVo{GuildId: guildId}
 	valuse := []vo.BackMessageVo{}
-
-	stmt, err := db.PrepareNamed(selectSql)
-
-	stmt.Select(&valuse, arg)
+	err := db.Select(&valuse, selectSql, arg)
 
 	if err != nil {
 		log.Err(err).Msg(`find backmessage table error`)
 	}
 
-	return valuse
+	return valuse, err
 }
 
-func (db *BackMessageSqlConnection) DeleteById(id string) bool {
+func (db *BackMessageSqlConnection) DeleteById(id string) error {
 	sql := `DELETE FROM backmessage WHERE id=:id`
 	backMessage := vo.BackMessageVo{Id: id}
 	_, err := db.NamedExec(sql, backMessage)
 
-	return err == nil
+	if err != nil {
+		log.Err(err).Msgf("Delete %s Error", id)
+	}
+
+	return err
 }
 
-func (db *BackMessageSqlConnection) DeleteByIdAndKeyAndGuildId(id string, key string, guildId string) bool {
+func (db *BackMessageSqlConnection) DeleteByIdAndKeyAndGuildId(id string, key string, guildId string) error {
 	sql := `DELETE FROM backmessage WHERE ID=:id AND KEY=:key AND GUILDID=:guildid`
 	arg := vo.BackMessageVo{Id: id, Key: key, GuildId: guildId}
 	_, err := db.NamedExec(sql, arg)
 
-	return err == nil
+	if err != nil {
+		log.Err(err).Msgf("Delete Error")
+	}
+
+	return err
 }
 
-func (db *BackMessageSqlConnection) DeleteByKeyAndValue(key string, value string) bool {
+func (db *BackMessageSqlConnection) DeleteByKeyAndValue(key string, value string) error {
 	sql := `DELETE FROM backmessage WHERE key=:key AND value=:value`
 	backMessage := vo.BackMessageVo{Key: key, Value: value}
-	result, err := db.NamedExec(sql, backMessage)
+	_, err := db.NamedExec(sql, backMessage)
 
 	if err != nil {
 		log.Err(err).Msgf(`Delete %v Error`, key)
 	}
 
-	row, err := result.RowsAffected()
-
-	return err == nil && row > 0
+	return err
 }
