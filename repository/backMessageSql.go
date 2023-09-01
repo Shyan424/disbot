@@ -27,10 +27,10 @@ func (db *BackMessageSqlConnection) Insert(backMessages []vo.BackMessageVo) erro
 }
 
 func (db *BackMessageSqlConnection) FindByKeyAndGuildId(key string, guildId string) ([]vo.BackMessageVo, error) {
-	selectSql := `SELECT * FROM backmessage WHERE key=:key AND GUILDID=:guildid`
+	stmt, _ := db.PrepareNamed(`SELECT * FROM backmessage WHERE key=:key AND GUILDID=:guildid`)
 	backMessage := vo.BackMessageVo{Key: key, GuildId: guildId}
 	backMessageVoSlice := []vo.BackMessageVo{}
-	err := db.Select(&backMessageVoSlice, selectSql, backMessage)
+	err := stmt.Select(&backMessageVoSlice, backMessage)
 
 	if err != nil {
 		log.Err(err).Msg(`BackMessage FindByKey ERROR`)
@@ -49,10 +49,10 @@ func (db *BackMessageSqlConnection) FindAll() []vo.BackMessageVo {
 }
 
 func (db *BackMessageSqlConnection) FindByGuildId(guildId string) ([]vo.BackMessageVo, error) {
-	selectSql := `SELECT DISTINCT KEY FROM backmessage WHERE GUILDID=:guildid`
+	stmt, _ := db.PrepareNamed(`SELECT DISTINCT KEY FROM backmessage WHERE GUILDID=:guildid`)
 	arg := vo.BackMessageVo{GuildId: guildId}
 	valuse := []vo.BackMessageVo{}
-	err := db.Select(&valuse, selectSql, arg)
+	err := stmt.Select(&valuse, arg)
 
 	if err != nil {
 		log.Err(err).Msg(`find backmessage table error`)
