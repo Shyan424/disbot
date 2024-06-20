@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 )
 
 var deleteInfoMap = make(map[string]deleteInfo)
@@ -87,6 +88,9 @@ func deleteMessageCommandFunc(c context) {
 		},
 	})
 
+	if err != nil {
+		log.Err(err).Msgf("Delete key %s fail", key)
+	}
 	if err == nil {
 		deleteInfoMap[key] = deleteInfo{message: c.interactionCreate.Interaction, expireTime: time.Now().Add(5 * time.Minute)}
 	}
