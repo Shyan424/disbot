@@ -62,12 +62,12 @@ func deleteMessageCommandFunc(c context) {
 	for i, message := range messages {
 		content.WriteString(strconv.Itoa(i))
 		content.WriteString(" ")
-		content.WriteString(message.Value)
+		content.WriteString(message)
 		content.WriteString("\n")
 
 		optioins[i] = discordgo.SelectMenuOption{
 			Label: strconv.Itoa(i),
-			Value: key + "_" + message.Id,
+			Value: key + "_" + message,
 		}
 	}
 
@@ -115,7 +115,7 @@ func deleteMessageComponentFunc(c context) {
 		return
 	}
 
-	if slashCommand.messageService.DeleteMessageByIdAndKeyAndGuildId(values[1], values[0], c.interactionCreate.GuildID) {
+	if slashCommand.messageService.DeleteMessage(c.interactionCreate.GuildID, values[0], values[1]) {
 		deOk := res.OK.GetMsg()
 
 		c.session.InteractionResponseEdit(info.message, &discordgo.WebhookEdit{

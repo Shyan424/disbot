@@ -34,7 +34,7 @@ type context struct {
 
 func (c context) handleMessage() string {
 	var outputMessage string
-	if strings.HasPrefix(c.message, "!") {
+	if strings.HasPrefix(c.message, "+") {
 		outputMessage = c.handleCommamd()
 	} else {
 		outputMessage = backMessageService.GetRandomValue(c.message, c.guildId)

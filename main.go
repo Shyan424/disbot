@@ -1,8 +1,6 @@
 package main
 
-import (
-	"discordbot/app"
-)
+import "discordbot/app"
 
 func main() {
 	app.Run()

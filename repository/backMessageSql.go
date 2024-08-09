@@ -1,14 +1,30 @@
 package repository
 
 import (
-	"discordbot/datasource/sqlsource"
+	"discordbot/datasource"
 	"discordbot/model/vo"
 
 	"github.com/rs/zerolog/log"
 )
 
+type BackMessageRepository interface {
+	Insert(backMessages []vo.BackMessageVo) error
+	FindByKeyAndGuildId(key string, guildId string) ([]vo.BackMessageVo, error)
+	FindAll() []vo.BackMessageVo
+	FindByGuildId(guildId string) ([]vo.BackMessageVo, error)
+	DeleteById(id string) error
+	DeleteByKeyAndValue(guildId string, key string, value string) error
+}
+
 type BackMessageSqlConnection struct {
-	*sqlsource.Connection
+	*datasource.SqlConnection
+}
+
+func GetBackMessageRepository() BackMessageRepository {
+	var connection BackMessageSqlConnection
+	connection.SqlConnection = datasource.GetDatasource()
+
+	return &connection
 }
 
 func (db *BackMessageSqlConnection) Insert(backMessages []vo.BackMessageVo) error {
@@ -85,9 +101,9 @@ func (db *BackMessageSqlConnection) DeleteByIdAndKeyAndGuildId(id string, key st
 	return err
 }
 
-func (db *BackMessageSqlConnection) DeleteByKeyAndValue(key string, value string) error {
-	sql := `DELETE FROM backmessage WHERE key=:key AND value=:value`
-	backMessage := vo.BackMessageVo{Key: key, Value: value}
+func (db *BackMessageSqlConnection) DeleteByKeyAndValue(guildId string, key string, value string) error {
+	sql := `DELETE FROM backmessage WHERE KEY=:key AND VALUE=:value AND GUILDID=:guildid`
+	backMessage := vo.BackMessageVo{Key: key, Value: value, GuildId: guildId}
 	_, err := db.NamedExec(sql, backMessage)
 
 	if err != nil {
