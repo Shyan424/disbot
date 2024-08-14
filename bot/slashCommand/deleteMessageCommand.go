@@ -17,7 +17,7 @@ type deleteInfo struct {
 	expireTime time.Time
 }
 
-func deleteMessageComand() {
+func deleteMessageCommand() {
 	command := discordgo.ApplicationCommand{
 		Name:        "delete",
 		Description: "delete message",

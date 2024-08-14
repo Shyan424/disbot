@@ -2,10 +2,13 @@ package bot
 
 import (
 	"discordbot/enum/res"
+	"discordbot/service"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
+
+const COMMAND_PREFIX string = "+"
 
 func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
 	// 該訊息是bot發送的就往下執行
@@ -21,6 +24,9 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 
 	outputMessage := context.handleMessage()
 
+	if outputMessage != "" && !strings.HasPrefix(context.message, COMMAND_PREFIX) {
+		service.GetLeaderboardService().AddScore(context.guildId, context.message)
+	}
 	if outputMessage != "" {
 		session.ChannelMessageSend(messageCreate.ChannelID, outputMessage)
 	}
@@ -34,7 +40,7 @@ type context struct {
 
 func (c context) handleMessage() string {
 	var outputMessage string
-	if strings.HasPrefix(c.message, "+") {
+	if strings.HasPrefix(c.message, COMMAND_PREFIX) {
 		outputMessage = c.handleCommamd()
 	} else {
 		outputMessage = backMessageService.GetRandomValue(c.message, c.guildId)

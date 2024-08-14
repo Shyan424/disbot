@@ -27,13 +27,14 @@ type slashcommand struct {
 }
 
 func AddSlashCommand(s *discordgo.Session) {
-	registSlashCommond(s)
+	registSlashCommand(s)
 }
 
-func registSlashCommond(s *discordgo.Session) {
+func registSlashCommand(s *discordgo.Session) {
 	setMessageCommand()
-	deleteMessageComand()
+	deleteMessageCommand()
 	allKey()
+	leaderboard()
 
 	slashCommand.registeredCommands = make([]*discordgo.ApplicationCommand, len(slashCommand.commands))
 
