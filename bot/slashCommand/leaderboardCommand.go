@@ -9,16 +9,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func leaderboard() {
+func leaderboard() slashCommandRegistry {
 	command := discordgo.ApplicationCommand{
 		Name:        "top",
 		Description: "top 10 message",
 	}
 
-	slashCommand.rCommand(slashCommandRegistry{
+	return slashCommandRegistry{
 		command:           &command,
 		commandHandleFunc: leaderboardFunc,
-	})
+	}
 }
 
 func leaderboardFunc(context context) {

@@ -31,10 +31,12 @@ func AddSlashCommand(s *discordgo.Session) {
 }
 
 func registSlashCommand(s *discordgo.Session) {
-	setMessageCommand()
-	deleteMessageCommand()
-	allKey()
-	leaderboard()
+	rCommand(
+		setMessageCommand(),
+		deleteMessageCommand(),
+		allKey(),
+		leaderboard(),
+	)
 
 	slashCommand.registeredCommands = make([]*discordgo.ApplicationCommand, len(slashCommand.commands))
 
@@ -81,32 +83,33 @@ type context struct {
 	componentArgs       []string
 }
 
-func (sc *slashcommand) rCommand(command slashCommandRegistry) {
-	if command.commandHandleFunc != nil {
-		sc.commands = append(sc.commands, command.command)
-		sc.commandHandleFuncMap[command.command.Name] = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			context := context{
-				session:             s,
-				interactionCreate:   i,
-				commandOptionArgMap: handleArg(i.ApplicationCommandData().Options),
-			}
+func rCommand(commands ...slashCommandRegistry) {
+	for _, command := range commands {
+		if command.commandHandleFunc != nil {
+			slashCommand.commands = append(slashCommand.commands, command.command)
+			slashCommand.commandHandleFuncMap[command.command.Name] = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+				context := context{
+					session:             s,
+					interactionCreate:   i,
+					commandOptionArgMap: handleArg(i.ApplicationCommandData().Options),
+				}
 
-			command.commandHandleFunc(context)
+				command.commandHandleFunc(context)
+			}
+		}
+
+		if command.componentId != "" && command.componentHandleFunc != nil {
+			slashCommand.componentHandleFuncMap[command.componentId] = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+				context := context{
+					session:           s,
+					interactionCreate: i,
+					componentArgs:     i.MessageComponentData().Values,
+				}
+
+				command.componentHandleFunc(context)
+			}
 		}
 	}
-
-	if command.componentId != "" && command.componentHandleFunc != nil {
-		sc.componentHandleFuncMap[command.componentId] = func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			context := context{
-				session:           s,
-				interactionCreate: i,
-				componentArgs:     i.MessageComponentData().Values,
-			}
-
-			command.componentHandleFunc(context)
-		}
-	}
-
 }
 
 func handleArg(options []*discordgo.ApplicationCommandInteractionDataOption) map[string]string {

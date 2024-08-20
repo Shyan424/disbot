@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func setMessageCommand() {
+func setMessageCommand() slashCommandRegistry {
 	command := discordgo.ApplicationCommand{
 		Name:        "set",
 		Description: "set message",
@@ -26,9 +26,10 @@ func setMessageCommand() {
 		},
 	}
 
-	reg := slashCommandRegistry{command: &command, commandHandleFunc: setMessageCommandFunc}
-
-	slashCommand.rCommand(reg)
+	return slashCommandRegistry{
+		command:           &command,
+		commandHandleFunc: setMessageCommandFunc,
+	}
 }
 
 func setMessageCommandFunc(c context) {

@@ -17,7 +17,7 @@ type deleteInfo struct {
 	expireTime time.Time
 }
 
-func deleteMessageCommand() {
+func deleteMessageCommand() slashCommandRegistry {
 	command := discordgo.ApplicationCommand{
 		Name:        "delete",
 		Description: "delete message",
@@ -31,14 +31,12 @@ func deleteMessageCommand() {
 		},
 	}
 
-	reg := slashCommandRegistry{
+	return slashCommandRegistry{
 		command:             &command,
 		commandHandleFunc:   deleteMessageCommandFunc,
 		componentId:         "delMsg",
 		componentHandleFunc: deleteMessageComponentFunc,
 	}
-
-	slashCommand.rCommand(reg)
 }
 
 func deleteMessageCommandFunc(c context) {

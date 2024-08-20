@@ -8,16 +8,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func allKey() {
+func allKey() slashCommandRegistry {
 	command := discordgo.ApplicationCommand{
 		Name:        "all_key",
 		Description: "get all key",
 	}
 
-	slashCommand.rCommand(slashCommandRegistry{
+	return slashCommandRegistry{
 		command:           &command,
 		commandHandleFunc: allMessageFunc,
-	})
+	}
 }
 
 func allMessageFunc(c context) {

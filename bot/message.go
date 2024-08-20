@@ -17,9 +17,10 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 	}
 
 	context := context{
-		guildId:     messageCreate.GuildID,
-		message:     messageCreate.Content,
-		attachments: messageCreate.Attachments,
+		guildId:            messageCreate.GuildID,
+		message:            messageCreate.Content,
+		attachments:        messageCreate.Attachments,
+		backMessageService: service.GetBackMessageService(),
 	}
 
 	outputMessage := context.handleMessage()
@@ -33,9 +34,10 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 }
 
 type context struct {
-	guildId     string
-	message     string
-	attachments []*discordgo.MessageAttachment
+	guildId            string
+	message            string
+	attachments        []*discordgo.MessageAttachment
+	backMessageService service.BackMessageService
 }
 
 func (c context) handleMessage() string {
@@ -43,7 +45,7 @@ func (c context) handleMessage() string {
 	if strings.HasPrefix(c.message, COMMAND_PREFIX) {
 		outputMessage = c.handleCommamd()
 	} else {
-		outputMessage = backMessageService.GetRandomValue(c.message, c.guildId)
+		outputMessage = c.backMessageService.GetRandomValue(c.message, c.guildId)
 	}
 
 	return outputMessage
@@ -64,7 +66,7 @@ func (c context) handleCommamd() string {
 		}
 
 		message := toBackMessage(messages)
-		return setBackMessage(message, c.guildId)
+		return setBackMessage(message, c)
 	}
 
 	return res.WHAT.GetMsg()
@@ -82,9 +84,9 @@ func toBackMessage(messages []string) *backMessage {
 	return &backMessage{key: key, value: value}
 }
 
-func setBackMessage(message *backMessage, guildId string) string {
+func setBackMessage(message *backMessage, context context) string {
 	var outputMessage res.Res
-	ok := backMessageService.InsertMessage(message.key, message.value, guildId)
+	ok := context.backMessageService.InsertMessage(message.key, message.value, context.guildId)
 	if ok {
 		outputMessage = res.OK
 	} else {
