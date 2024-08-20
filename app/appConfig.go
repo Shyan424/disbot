@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"discordbot/bot"
-	"discordbot/datasource/sqlsource"
+	"discordbot/datasource"
+	"discordbot/model/config"
+	"discordbot/service"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -12,30 +14,39 @@ import (
 
 func Run() {
 	defaultConfig()
-	loadConfigFile()
-	bot := bot.New("Bot " + viper.GetString("discordbot.token"))
+	conf := loadConfigFile()
+	checkNecessaryConfig(conf)
+	bot := bot.New("Bot " + conf.Discordbot.Token)
 	ctx, cancel := context.WithCancel(context.Background())
 	wait := sync.WaitGroup{}
 
-	if viper.GetString("datasource.postgres.uri") == "" {
-		log.Fatal().Msg("No DB uri???")
-	}
-
-	wait.Add(1)
-	go sqlsource.ConnectPostSql(ctx, &wait)
+	datasource.ConnectDbs(ctx, &wait, conf)
+	service.GetBackMessageService().RefreshAllToRedis()
 
 	bot.ConnectDiscord()
 	cancel()
 	wait.Wait()
 }
 
-func loadConfigFile() {
-	// logrus.SetReportCaller(true)
-	// log.SetFlags(log.Lshortfile)
+func loadConfigFile() config.Config {
 	viper.SetConfigFile("./config.yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Read config error")
+	}
+
+	var c config.Config
+	viper.Unmarshal(&c)
+
+	return c
+}
+
+func checkNecessaryConfig(conf config.Config) {
+	if conf.Datasource.Postgres.Uri == "" {
+		log.Fatal().Msg("No DB uri???")
+	}
+	if conf.Datasource.Redis.Uri == "" {
+		log.Fatal().Msg("No Redis uri???")
 	}
 }
 

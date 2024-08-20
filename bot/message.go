@@ -2,10 +2,13 @@ package bot
 
 import (
 	"discordbot/enum/res"
+	"discordbot/service"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
+
+const COMMAND_PREFIX string = "+"
 
 func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
 	// 該訊息是bot發送的就往下執行
@@ -14,30 +17,35 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 	}
 
 	context := context{
-		guildId:     messageCreate.GuildID,
-		message:     messageCreate.Content,
-		attachments: messageCreate.Attachments,
+		guildId:            messageCreate.GuildID,
+		message:            messageCreate.Content,
+		attachments:        messageCreate.Attachments,
+		backMessageService: service.GetBackMessageService(),
 	}
 
 	outputMessage := context.handleMessage()
 
+	if outputMessage != "" && !strings.HasPrefix(context.message, COMMAND_PREFIX) {
+		service.GetLeaderboardService().AddScore(context.guildId, context.message)
+	}
 	if outputMessage != "" {
 		session.ChannelMessageSend(messageCreate.ChannelID, outputMessage)
 	}
 }
 
 type context struct {
-	guildId     string
-	message     string
-	attachments []*discordgo.MessageAttachment
+	guildId            string
+	message            string
+	attachments        []*discordgo.MessageAttachment
+	backMessageService service.BackMessageService
 }
 
 func (c context) handleMessage() string {
 	var outputMessage string
-	if strings.HasPrefix(c.message, "!") {
+	if strings.HasPrefix(c.message, COMMAND_PREFIX) {
 		outputMessage = c.handleCommamd()
 	} else {
-		outputMessage = backMessageService.GetRandomValue(c.message, c.guildId)
+		outputMessage = c.backMessageService.GetRandomValue(c.message, c.guildId)
 	}
 
 	return outputMessage
@@ -58,7 +66,7 @@ func (c context) handleCommamd() string {
 		}
 
 		message := toBackMessage(messages)
-		return setBackMessage(message, c.guildId)
+		return setBackMessage(message, c)
 	}
 
 	return res.WHAT.GetMsg()
@@ -76,9 +84,9 @@ func toBackMessage(messages []string) *backMessage {
 	return &backMessage{key: key, value: value}
 }
 
-func setBackMessage(message *backMessage, guildId string) string {
+func setBackMessage(message *backMessage, context context) string {
 	var outputMessage res.Res
-	ok := backMessageService.InsertMessage(message.key, message.value, guildId)
+	ok := context.backMessageService.InsertMessage(message.key, message.value, context.guildId)
 	if ok {
 		outputMessage = res.OK
 	} else {

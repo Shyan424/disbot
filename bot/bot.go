@@ -2,7 +2,6 @@ package bot
 
 import (
 	slashcommand "discordbot/bot/slashCommand"
-	"discordbot/service"
 	"fmt"
 	"os"
 	"os/signal"
@@ -11,8 +10,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog/log"
 )
-
-var backMessageService service.BackMessageService
 
 type Discordbot struct {
 	Session *discordgo.Session
@@ -31,9 +28,6 @@ func New(token string) *Discordbot {
 }
 
 func (d *Discordbot) ConnectDiscord() {
-	// Create a new Discord session using the provided bot token.
-	backMessageService = service.GetBackMessageService()
-
 	// Register the messageCreate func as a callback for MessageCreate events.
 	d.Session.AddHandler(messageCreate)
 
@@ -48,7 +42,6 @@ func (d *Discordbot) ConnectDiscord() {
 	}
 
 	slashcommand.AddSlashCommand(d.Session)
-	// addSlashCommand(d)
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
@@ -58,7 +51,6 @@ func (d *Discordbot) ConnectDiscord() {
 	<-sc
 
 	slashcommand.DeleteSlashCommand(d.Session)
-	// deleteSlashCommand(d)
 
 	// Cleanly close down the Discord session.
 	d.Session.Close()
