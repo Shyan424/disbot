@@ -6,6 +6,7 @@ import (
 	"discordbot/datasource"
 	"discordbot/model/config"
 	"discordbot/service"
+	"flag"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -28,8 +29,17 @@ func Run() {
 	wait.Wait()
 }
 
+func loadFlag() config.Flag {
+	flags := config.Flag{}
+	flag.StringVar(&flags.Config, "config", "./config.yaml", "bot config")
+	flag.Parse()
+
+	return flags
+}
+
 func loadConfigFile() config.Config {
-	viper.SetConfigFile("./config.yaml")
+	flags := loadFlag()
+	viper.SetConfigFile(flags.Config)
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Read config error")
