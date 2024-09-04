@@ -57,7 +57,7 @@ func (c context) handleCommamd() string {
 
 	switch act {
 	case "set":
-		if len(messages) > 3 || (len(messages) > 2 && len(c.attachments) == 1) {
+		if len(messages) < 3 && (len(messages) < 2 && len(c.attachments) != 1) {
 			return res.FAIL.GetMsg()
 		}
 
@@ -84,14 +84,10 @@ func toBackMessage(messages []string) *backMessage {
 	return &backMessage{key: key, value: value}
 }
 
-func setBackMessage(message *backMessage, context context) string {
-	var outputMessage res.Res
-	ok := context.backMessageService.InsertMessage(message.key, message.value, context.guildId)
-	if ok {
-		outputMessage = res.OK
-	} else {
-		outputMessage = res.FAIL
+func setBackMessage(message *backMessage, c context) string {
+	if c.backMessageService.InsertMessage(message.key, message.value, c.guildId) {
+		return res.OK.GetMsg()
 	}
 
-	return outputMessage.GetMsg()
+	return res.FAIL.GetMsg()
 }

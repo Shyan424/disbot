@@ -16,7 +16,7 @@ type Leaderboard struct {
 }
 
 func GetLeaderboardService() LeaderboardService {
-	return &Leaderboard{repository.GetLeaderboaedRepository()}
+	return &Leaderboard{repository.GetLeaderboardRepository()}
 }
 
 const PREFIX string = "leaderboard"

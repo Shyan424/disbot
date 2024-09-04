@@ -53,18 +53,11 @@ func (r *BackMessageRedis) Insert(backMessages []vo.BackMessageVo) {
 func splitByGuildIdAndKey(backMessages []vo.BackMessageVo) map[string]map[string][]string {
 	guildV := map[string]map[string][]string{}
 	for _, v := range backMessages {
-		keyV := guildV[v.GuildId]
-		if keyV == nil {
-			keyV = map[string][]string{}
+		if keyV, ok := guildV[v.GuildId]; ok {
+			guildV[v.GuildId][v.Key] = append(keyV[v.Key], v.Value)
+		} else {
+			guildV[v.GuildId] = map[string][]string{v.Key: {v.Value}}
 		}
-		values := keyV[v.Key]
-		if values == nil {
-			values = []string{}
-		}
-
-		values = append(values, v.Value)
-		keyV[v.Key] = values
-		guildV[v.GuildId] = keyV
 	}
 
 	return guildV

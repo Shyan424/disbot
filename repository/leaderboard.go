@@ -17,7 +17,7 @@ type LeaderboardRedis struct {
 	*datasource.RedisClient
 }
 
-func GetLeaderboaedRepository() LeaderboardRedisRepository {
+func GetLeaderboardRepository() LeaderboardRedisRepository {
 	return &LeaderboardRedis{datasource.GetRedisClient()}
 }
 

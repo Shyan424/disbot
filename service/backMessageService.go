@@ -41,17 +41,19 @@ func (conn *BackMessageConnection) InsertMessage(key string, value string, guild
 }
 
 func (conn *BackMessageConnection) GetAllValueByKeyAndGuild(key string, guildId string) []string {
-	values, _ := conn.r.FindByKeyAndGuildId(key, guildId)
-	if values != nil {
+	if values, err := conn.r.FindByKeyAndGuildId(key, guildId); err == nil && len(values) != 0 {
 		return values
 	}
 
 	backMessages, err := conn.s.FindByKeyAndGuildId(key, guildId)
 	if err != nil {
 		log.Err(err).Msgf("FindByKeyAndGuildId %s Error", key)
+		return nil
 	}
-	for _, v := range backMessages {
-		values = append(values, v.Value)
+
+	values := make([]string, len(backMessages))
+	for i, v := range backMessages {
+		values[i] = v.Value
 	}
 
 	conn.r.InsertByGuildIdAndKey(guildId, key, values...)
@@ -61,18 +63,21 @@ func (conn *BackMessageConnection) GetAllValueByKeyAndGuild(key string, guildId 
 
 func (conn *BackMessageConnection) GetAllKeyByGuildId(guildId string) []string {
 	allKey := "AllKey:" + guildId
-	keys, _ := conn.r.FindByKeyAndGuildId(guildId, allKey)
-	if len(keys) != 0 {
+	if keys, err := conn.r.FindByKeyAndGuildId(guildId, allKey); err == nil && len(keys) != 0 {
 		return keys
 	}
 
 	backMessages, err := conn.s.FindByGuildId(guildId)
 	if err != nil {
-		return keys
+		log.Err(err).Msgf("FindByGuildId %s Error", guildId)
+		return nil
 	}
-	for _, v := range backMessages {
-		keys = append(keys, v.Key)
+
+	keys := make([]string, len(backMessages))
+	for i, v := range backMessages {
+		keys[i] = v.Key
 	}
+
 	conn.r.InsertByGuildIdAndKey(guildId, allKey, keys...)
 
 	return keys
@@ -94,8 +99,9 @@ func (conn *BackMessageConnection) GetRandomValue(key string, guildId string) st
 	return value
 }
 
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 func random(maxIndex int) int {
-	r := rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
 	return r.Intn(maxIndex)
 }
 

@@ -84,7 +84,8 @@ type context struct {
 }
 
 func rCommand(commands ...slashCommandRegistry) {
-	for _, command := range commands {
+	for i := range commands {
+		command := commands[i]
 		if command.commandHandleFunc != nil {
 			slashCommand.commands = append(slashCommand.commands, command.command)
 			slashCommand.commandHandleFuncMap[command.command.Name] = func(s *discordgo.Session, i *discordgo.InteractionCreate) {

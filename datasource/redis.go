@@ -3,7 +3,6 @@ package datasource
 import (
 	"context"
 	"discordbot/model/config"
-	"strings"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
@@ -17,9 +16,9 @@ func initRedis(conf config.Config) RedisClient {
 	}
 
 	redisClient.Client = redis.NewClient(option)
-	pong := redisClient.Ping(context.Background()).Val()
-	if !strings.EqualFold(pong, "PONG") {
-		log.Fatal().Msg("Redis connect error")
+
+	if err := redisClient.Ping(context.Background()).Err(); err != nil {
+		log.Fatal().Err(err).Msg("Redis connect error")
 	}
 
 	log.Info().Msg("Redis connected")
