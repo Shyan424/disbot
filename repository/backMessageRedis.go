@@ -43,11 +43,13 @@ func (r *BackMessageRedis) InsertByGuildIdAndKey(guildId string, key string, val
 
 func (r *BackMessageRedis) Insert(backMessages []vo.BackMessageVo) {
 	backMessageKeyValues := splitByGuildIdAndKey(backMessages)
+	pipline := r.Pipeline()
 	for guildId, vs := range backMessageKeyValues {
 		for key, vos := range vs {
-			r.SAdd(context.Background(), guildIdAndKeyToSetsKey(guildId, key), vos)
+			pipline.SAdd(context.Background(), guildIdAndKeyToSetsKey(guildId, key), vos)
 		}
 	}
+	pipline.Exec(context.Background())
 }
 
 func splitByGuildIdAndKey(backMessages []vo.BackMessageVo) map[string]map[string][]string {
