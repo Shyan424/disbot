@@ -11,6 +11,9 @@ import (
 const COMMAND_PREFIX string = "+"
 
 func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
+	if session == nil || messageCreate == nil {
+		return
+	}
 	// 該訊息是bot發送的就往下執行
 	if messageCreate.Author.ID == session.State.User.ID || messageCreate.Content == "" {
 		return
