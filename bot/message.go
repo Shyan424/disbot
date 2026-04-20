@@ -8,8 +8,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const COMMAND_PREFIX string = "+"
-
 func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
 	if session == nil || messageCreate == nil {
 		return
@@ -28,10 +26,8 @@ func messageCreate(session *discordgo.Session, messageCreate *discordgo.MessageC
 
 	outputMessage := context.handleMessage()
 
-	if outputMessage != "" && !strings.HasPrefix(context.message, COMMAND_PREFIX) {
-		service.GetLeaderboardService().AddScore(context.guildId, context.message)
-	}
 	if outputMessage != "" {
+		service.GetLeaderboardService().AddScore(context.guildId, context.message)
 		session.ChannelMessageSend(messageCreate.ChannelID, outputMessage)
 	}
 }
@@ -44,35 +40,7 @@ type context struct {
 }
 
 func (c context) handleMessage() string {
-	var outputMessage string
-	if strings.HasPrefix(c.message, COMMAND_PREFIX) {
-		outputMessage = c.handleCommamd()
-	} else {
-		outputMessage = c.backMessageService.GetRandomValue(c.message, c.guildId)
-	}
-
-	return outputMessage
-}
-
-func (c context) handleCommamd() string {
-	messages := strings.Split(c.message, " ")
-	act := messages[0][1:]
-
-	switch act {
-	case "set":
-		if len(messages) < 3 && (len(messages) < 2 && len(c.attachments) != 1) {
-			return res.FAIL.GetMsg()
-		}
-
-		if len(c.attachments) > 0 {
-			messages = append(messages, c.attachments[0].URL)
-		}
-
-		message := toBackMessage(messages)
-		return setBackMessage(message, c)
-	}
-
-	return res.WHAT.GetMsg()
+	return c.backMessageService.GetRandomValue(c.message, c.guildId)
 }
 
 type backMessage struct {
